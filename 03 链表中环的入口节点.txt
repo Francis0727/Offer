@@ -1,0 +1,93 @@
+#include <iostream>
+#include <initializer_list>
+#include <iterator>
+#include <list>
+
+template<typename T>
+struct Node {
+    T data;
+    Node* next;
+};
+
+template<typename T>
+Node<T>* MeetingNode(Node<T>* pHead){
+    if (pHead == NULL){
+        return NULL;
+    }
+    
+    Node<T>* pSlow = pHead->next;
+    if (pSlow == NULL){
+        return NULL;
+    }
+    
+    Node<T>* pFast = pSlow->next;
+    // 若存在环，则指针不可能执行NULL
+    while (pSlow != NULL && pFast != NULL){
+        if (pSlow == pFast){
+            return pFast;
+        }
+        
+        pSlow = pSlow->next;
+        pFast = pFast->next;
+        if (pFast != NULL){
+            pFast = pFast->next;
+        }
+    }
+    return NULL;
+}
+
+/*
+ * 设计思路: 
+ * 1: 设计慢指针和快指针，用于找到环上的某个节点。慢指针与快指针都入环后,
+ *    可理解为慢指针在快指针的前头(采用相对位置)，但快指针跑的比慢指针快，
+ *    因此，快指针一定会与慢指针在某个节点上面相遇。
+ * 2: 计算环中具有总节点数。找到相遇节点后，不断的移动节点，直到新节点的
+ *    地址与相遇节点的地址相同
+ * 3: 查找环的入口。设定指针A、B具有相同的移动速度，但指针A比指针B先移动
+ *    (移动数为环数)。因此当A移动到入口后，B的位置也正好在环的入口
+*/
+template<typename T>
+Node<T>* EntryNodeofLoop(Node<T>* pHead){
+
+    Node<T>* meetNode = MeetingNode(pHead);
+    if (meetNode == NULL){
+        return NULL;
+    }
+    
+    int nodeInLoop = 1;
+    Node<T>* pNode = meetNode;
+    while (pNode->next != meetNode){
+        ++nodeInLoop;
+        pNode = pNode->next;
+    }
+    std::cout << "nodesInLoop: " << nodeInLoop << std::endl;
+
+    Node<T>* pNode1 = pHead;
+    Node<T>* pNode2 = pHead;
+    for (int cnt = 0; cnt < nodeInLoop; ++cnt){
+        pNode1 = pNode1->next;
+    }
+    
+    while (pNode1 != pNode2){
+        pNode1 = pNode1->next;
+        pNode2 = pNode2->next;
+    }
+    
+    return pNode1;
+}
+
+int main(){
+    // 构成一个具有环的链表
+    Node<int>* node6 = new Node<int>{6,NULL};
+    Node<int>* node5 = new Node<int>{5,node6};
+    Node<int>* node4 = new Node<int>{4,node5};
+    Node<int>* node3 = new Node<int>{3,node4};
+    Node<int>* node2 = new Node<int>{2,node3};
+    Node<int>* node1 = new Node<int>{1,node2};
+    node6->next = node3;
+    
+    Node<int>* entryNode = EntryNodeofLoop(node1);
+    std::cout << "data: " << entryNode->data << std::endl;
+
+    return 0;
+}
